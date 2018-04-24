@@ -8,11 +8,16 @@ namespace ImmutableBuilder
     {
         static void Main(string[] args)
         {
-            var dest1 = new SingleDestinationBuilder();
-            dest1 = dest1.WithDestination("destination 1").WithSource("source 1") as SingleDestinationBuilder;
+            var dest1 = new SingleDestinationBuilder("source 1","destination 1");
 
             var dest2 = dest1.WithSource("source 2") as SingleDestinationBuilder;
-            //dest2.WithDestination("destination 2");
+            dest2.WithDestination("destination 2");
+
+            var multDest1 = new MultipleDestinationBuilder("source 1", new string[] { "destination 1", "destination 2" });
+
+            var multDest2 = multDest1.WithSource("source 2") as MultipleDestinationBuilder;
+            multDest2.WithDestinations("destination 34");
+
 
         }
 
@@ -39,8 +44,6 @@ namespace ImmutableBuilder
 
     public class SingleDestinationBuilder : BuilderBase
     {
-        //private new string _source;
-
         private string _destination;
 
         public SingleDestinationBuilder()
@@ -81,9 +84,25 @@ namespace ImmutableBuilder
     {
         private IReadOnlyCollection<string> _destinations;
 
+        public MultipleDestinationBuilder()
+        {
+        }
+
+        public MultipleDestinationBuilder(string source, IReadOnlyCollection<string> destinations)
+        {
+            base.WithSource(source);
+            this.WithDestinations(destinations.ToArray());
+        }
+
         public MultipleDestinationBuilder WithDestinations(params string[] destinations)
         {
-            throw new NotImplementedException();
+            _destinations = destinations;
+            return this;
+        }
+
+        public new BuilderBase WithSource(string source)
+        {
+            return new MultipleDestinationBuilder(source, _destinations);
         }
 
         protected override IEnumerable<KeyValuePair<string, string>> EnumerateEntries()
