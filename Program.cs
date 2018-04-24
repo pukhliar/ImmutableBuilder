@@ -8,17 +8,11 @@ namespace ImmutableBuilder
     {
         static void Main(string[] args)
         {
-            var dest1 = new SingleDestinationBuilder("source 1","destination 1");
+            var builder = new SingleDestinationBuilder();
+            builder = builder.WithDestination("dest");
 
-            var dest2 = dest1.WithSource("source 2") as SingleDestinationBuilder;
-            dest2.WithDestination("destination 2");
-
-            var multDest1 = new MultipleDestinationBuilder("source 1", new string[] { "destination 1", "destination 2" });
-
-            var multDest2 = multDest1.WithSource("source 2") as MultipleDestinationBuilder;
-            multDest2.WithDestinations("destination 34");
-
-
+            var src1 = builder.WithSource("src1");
+            var src2 = builder.WithSource("src2");
         }
 
         static IReadOnlyDictionary<string, string> BuildSingleDestination()
@@ -46,16 +40,6 @@ namespace ImmutableBuilder
     {
         private string _destination;
 
-        public SingleDestinationBuilder()
-        {
-        }
-
-        public SingleDestinationBuilder(string source, string destination)
-        {
-            base.WithSource(source);
-            _destination = destination;
-        }
-
         public SingleDestinationBuilder WithDestination(string destination)
         {
             _destination = destination;
@@ -73,36 +57,16 @@ namespace ImmutableBuilder
 
             yield return KeyValuePair.Create("Destination", _destination);
         }
-
-        public new BuilderBase WithSource(string source)
-        {
-            return new SingleDestinationBuilder(source, _destination);
-        }
     }
 
     public class MultipleDestinationBuilder : BuilderBase
     {
         private IReadOnlyCollection<string> _destinations;
 
-        public MultipleDestinationBuilder()
-        {
-        }
-
-        public MultipleDestinationBuilder(string source, IReadOnlyCollection<string> destinations)
-        {
-            base.WithSource(source);
-            this.WithDestinations(destinations.ToArray());
-        }
-
         public MultipleDestinationBuilder WithDestinations(params string[] destinations)
         {
             _destinations = destinations;
             return this;
-        }
-
-        public new BuilderBase WithSource(string source)
-        {
-            return new MultipleDestinationBuilder(source, _destinations);
         }
 
         protected override IEnumerable<KeyValuePair<string, string>> EnumerateEntries()
@@ -123,8 +87,9 @@ namespace ImmutableBuilder
 
         public BuilderBase WithSource(string source)
         {
-            _source = source;
-            return this;
+            var builder = (BuilderBase)this.MemberwiseClone();
+            builder._source = source;
+            return builder;
         }
 
         protected virtual IEnumerable<KeyValuePair<string, string>> EnumerateEntries()
