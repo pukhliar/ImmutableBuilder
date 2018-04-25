@@ -11,39 +11,38 @@ namespace ImmutableBuilder
             var builder = new SingleDestinationBuilder();
             builder = builder.WithDestination("dest");
 
-            var src1 = builder.WithSource("src1");
-            var src2 = builder.WithSource("src2");
+            var src1 = builder.WithSource("src1").WithDestination("dest2");
+
         }
 
-        static IReadOnlyDictionary<string, string> BuildSingleDestination()
-        {
-            var singleDestinationBuilder = new SingleDestinationBuilder();
+        //static IReadOnlyDictionary<string, string> BuildSingleDestination()
+        //{
+        //    var singleDestinationBuilder = new SingleDestinationBuilder();
 
-            return singleDestinationBuilder
-               .WithDestination("destination")
-               .WithSource("source 1")
-               .Build();
-        }
+        //    return singleDestinationBuilder
+        //       .WithSource("source 1")
+        //       .WithDestination("destination")
+        //       .Build();
+        //}
 
-        static IReadOnlyDictionary<string, string> BuildMultipleDestination()
-        {
-            var multipleDestinationBuilder = new MultipleDestinationBuilder();
+        //static IReadOnlyDictionary<string, string> BuildMultipleDestination()
+        //{
+        //    var multipleDestinationBuilder = new MultipleDestinationBuilder();
 
-            return multipleDestinationBuilder
-                .WithDestinations("destination 1", "destination 2")
-                .WithSource("source")
-                .Build();
-        }
+        //    return multipleDestinationBuilder
+        //        .WithDestinations("destination 1", "destination 2")
+        //        .WithSource("source")
+        //        .Build();
+        //}
     }
 
-    public class SingleDestinationBuilder : BuilderBase
+    public class SingleDestinationBuilder : BuilderBase<SingleDestinationBuilder>
     {
         private string _destination;
 
         public SingleDestinationBuilder WithDestination(string destination)
         {
             _destination = destination;
-
             return this;
         }
 
@@ -59,7 +58,21 @@ namespace ImmutableBuilder
         }
     }
 
-    public class MultipleDestinationBuilder : BuilderBase
+    //public static class SingleDestinationBuilderExtension
+    //{
+    //    public static SingleDestinationBuilder WithDestination<T>(this T obj, string destination) where T : BuilderBase
+    //    {
+    //        if (obj.GetType().Equals(typeof(SingleDestinationBuilder)))
+    //            return null;
+
+    //        var builder = obj as SingleDestinationBuilder;
+    //        builder.WithDestination(destination);
+
+    //        return builder;
+    //    }
+    //}
+
+    public class MultipleDestinationBuilder : BuilderBase<MultipleDestinationBuilder>
     {
         private IReadOnlyCollection<string> _destinations;
 
@@ -81,13 +94,19 @@ namespace ImmutableBuilder
         }
     }
 
-    public abstract class BuilderBase
+    public interface IBuilderBase
+    {
+        string ChildrenType { get; set; }
+    }
+
+
+    public abstract class BuilderBase<T> where T : BuilderBase<T>
     {
         private string _source;
 
-        public BuilderBase WithSource(string source)
+        public T WithSource(string source)
         {
-            var builder = (BuilderBase)this.MemberwiseClone();
+            var builder = (T)this.MemberwiseClone();
             builder._source = source;
             return builder;
         }
@@ -102,5 +121,9 @@ namespace ImmutableBuilder
             var entries = EnumerateEntries();
             return new Dictionary<string, string>(entries);
         }
+
     }
+
+
+
 }
